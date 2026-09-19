@@ -1,0 +1,26 @@
+本目录使用合成运动数据，不代表真实个人的轨迹或健康记录。
+保留平台文件结构用于兼容性测试，平台名称不代表官方授权或背书。
+
+codoon/local-run.gpx: 咕咚本地跑步
+
+codoon-suunto/watch-run.gpx: 咕咚导出-颂拓记录
+
+garmin/connect-run.{gpx,tcx}: 佳明 Connect
+garmin/forerunner-run{,-2}.fit: 佳明 Forerunner
+
+joyrun/phone-run.{fit,tcx}: 悦跑圈-无手表
+joyrun-suunto/watch-run.{fit,tcx}: 悦跑圈-有手表
+
+suunto/watch-run.fit: 颂拓手表
+suunto/watch-run.gpx: 颂拓 App 路线
+
+garmin // 佳明
+codoon // 咕咚运动
+suunto // 颂拓
+joyrun // 悦跑圈
+codoon-garmin // 咕咚导出-佳明记录
+codoon-suunto // 咕咚导出-颂拓记录
+joyrun-garmin // 悦跑圈导出-佳明记录
+joyrun-suunto // 悦跑圈导出-颂拓记录
+
+咕咚，本地记录只能导出 gpx、kml 格式

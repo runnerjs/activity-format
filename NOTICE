@@ -1,0 +1,17 @@
+@runnerjs/activity-format
+Copyright 2026 runnerjs
+
+This product is licensed under the Apache License, Version 2.0.
+See the LICENSE file in this distribution.
+
+Third-party software:
+
+xml2js
+  License: MIT
+  https://www.npmjs.com/package/xml2js
+
+@garmin/fitsdk
+  License: Garmin FIT SDK License (proprietary)
+  https://github.com/garmin/fit-javascript-sdk/blob/main/LICENSE.txt
+  Installed as an npm dependency; not redistributed in this package.
+  Using FIT parse/write means you also accept that license.
