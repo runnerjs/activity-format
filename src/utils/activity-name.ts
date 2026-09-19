@@ -48,7 +48,7 @@ export function formatDateTimeInTz(
   timeZone = 'Asia/Shanghai',
 ): string {
   const date = typeof value === 'string' ? new Date(value) : value;
-  // hour12: false 保证 24 小时制，避免上午/下午标记
+  // hourCycle: h23 把午夜写成 00，避免 Node 18 / 旧 ICU 在 hour12: false 下输出 24:00:00
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone,
     year: 'numeric',
@@ -57,7 +57,7 @@ export function formatDateTimeInTz(
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false,
+    hourCycle: 'h23',
   }).formatToParts(date);
   const y = parts.find((p) => p.type === 'year')?.value ?? '0000';
   const m = parts.find((p) => p.type === 'month')?.value ?? '01';
