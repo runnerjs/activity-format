@@ -59,7 +59,7 @@ npm install @runnerjs/activity-format
 
 FIT 解析/写出依赖 [`@garmin/fitsdk`](https://www.npmjs.com/package/@garmin/fitsdk)，会作为本包的 npm 依赖安装，**不会**打进本库产物。使用 FIT 即表示同时接受 [Garmin FIT SDK License](https://github.com/garmin/fit-javascript-sdk/blob/main/LICENSE.txt)。
 
-FIT 路径需要 Node.js `Buffer`。浏览器环境请自行提供 Buffer polyfill，或只使用 GPX / TCX / JSON。
+公开入参是 `Uint8Array | ArrayBuffer`（Node `Buffer` 运行时也可传入）。FIT 解析/写出内部仍依赖 Node.js `Buffer`（Garmin SDK）。浏览器要走 FIT 请自行提供 Buffer polyfill，或只使用 GPX / TCX / JSON。
 
 ## 快速开始
 

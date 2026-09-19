@@ -59,7 +59,7 @@ npm install @runnerjs/activity-format
 
 FIT parse/write depends on [`@garmin/fitsdk`](https://www.npmjs.com/package/@garmin/fitsdk). It is installed as an npm dependency and is **not** bundled into this package. Using FIT features means you also accept the [Garmin FIT SDK License](https://github.com/garmin/fit-javascript-sdk/blob/main/LICENSE.txt).
 
-The FIT path requires Node.js `Buffer`. In browsers, provide a Buffer polyfill or stick to GPX / TCX / JSON.
+The public input type is `Uint8Array | ArrayBuffer` (a Node `Buffer` still works at runtime). FIT parse/write still uses Node.js `Buffer` internally (Garmin SDK). In browsers, provide a Buffer polyfill or stick to GPX / TCX / JSON.
 
 ## Quick start
 
