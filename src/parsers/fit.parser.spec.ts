@@ -181,6 +181,85 @@ describe('parseFit suunto sample', () => {
   });
 });
 
+describe('parseFit codoon app export', () => {
+  it('把分段 distance 累加成从起点起的累计距离', async () => {
+    const model = await parseFit(
+      readFileSync(repoDemoPath('codoon/2013-08-29_17-01-07.fit')),
+    );
+    expect(model.summary.source).toBe(TRACK_SOURCE.codoon);
+
+    const distances = model.points
+      .map((point) => point.dist)
+      .filter((dist): dist is number => dist !== undefined);
+    expect(distances[0]).toBeCloseTo(6, 3);
+    expect(distances[1]).toBeCloseTo(29, 3);
+    expect(distances[2]).toBeCloseTo(50, 3);
+    for (let index = 1; index < distances.length; index += 1) {
+      expect(distances[index]).toBeGreaterThanOrEqual(distances[index - 1]);
+    }
+    expect(distances[distances.length - 1]).toBeCloseTo(15047, 0);
+    expect(model.summary.distance2dM).toBeCloseTo(15079, 0);
+  });
+
+  it('距离已经累计递增时保持原值', async () => {
+    const model = await parseFit(
+      readFileSync(repoDemoPath('codoon/2015-04-02_19-09-41.fit')),
+    );
+    expect(model.summary.source).toBe(TRACK_SOURCE.codoon);
+
+    const distances = model.points
+      .map((point) => point.dist)
+      .filter((dist): dist is number => dist !== undefined);
+    expect(distances[0]).toBeCloseTo(11, 3);
+    expect(distances[1]).toBeCloseTo(23, 3);
+    expect(distances[distances.length - 1]).toBeCloseTo(8254, 0);
+    expect(model.summary.distance2dM).toBeCloseTo(8244, 0);
+  });
+
+  it('末尾几米回落仍保持文件里的累计距离', async () => {
+    const model = await parseFit(
+      readFileSync(repoDemoPath('codoon/2015-04-13_18-41-16.fit')),
+    );
+    expect(model.summary.source).toBe(TRACK_SOURCE.codoon);
+
+    const distances = model.points
+      .map((point) => point.dist)
+      .filter((dist): dist is number => dist !== undefined);
+    expect(distances[0]).toBeCloseTo(12, 3);
+    expect(distances[1]).toBeCloseTo(25, 3);
+    expect(distances[distances.length - 1]).toBeCloseTo(5403, 0);
+    expect(model.summary.distance2dM).toBeCloseTo(5392, 0);
+  });
+
+  it('来源指定为咕咚时，累计距离不再累加', async () => {
+    const model = await parseFit(readFileSync(repoDemoPath('suunto/watch-run.fit')), {
+      source: TRACK_SOURCE.codoon,
+    });
+    expect(model.summary.distance2dM).toBe(52560);
+    const lastDist = model.points[model.points.length - 1]?.dist ?? 0;
+    expect(lastDist).toBeLessThan(60000);
+  });
+});
+
+describe('parseFit joyrun phone export', () => {
+  it('保持文件里的累计距离', async () => {
+    const model = await parseFit(readFileSync(repoDemoPath('joyrun/phone-run.fit')));
+    expect(model.summary.source).toBe(TRACK_SOURCE.joyrun);
+
+    const distances = model.points
+      .map((point) => point.dist)
+      .filter((dist): dist is number => dist !== undefined);
+    expect(distances[0]).toBeLessThan(50);
+    for (let index = 1; index < distances.length; index += 1) {
+      expect(distances[index]).toBeGreaterThanOrEqual(distances[index - 1]);
+    }
+    expect(distances[distances.length - 1]).toBeCloseTo(
+      model.summary.distance2dM as number,
+      -2,
+    );
+  });
+});
+
 describe('parseFit no-gps-records fixture', () => {
   it('保留无 GPS 但带心率的 record', async () => {
     const model = await parseFit(

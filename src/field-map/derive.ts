@@ -12,7 +12,6 @@ import type { Activity, FileFormat, FormatTransformMeta } from '../types';
 import {
   deriveDurationSecFromPoints,
   estimateActivityDistanceM,
-  pickReasonableDistanceM,
 } from '../utils/track-point';
 import { toTimeMs } from './lap-point-range';
 import { asArray, isPlainObject, parsePath, resolvePathValue, unwrapXmlLeaf } from './path-util';
@@ -279,35 +278,58 @@ function deriveXmlDurationSec(context: DeriveContext): unknown {
 }
 
 /**
- * FIT 距离：session 声明、末点累计、注册表结果与折线估算交叉校验。
+ * FIT 距离：文件 session 总距离、末点距离、轨迹折线，前一项有值就用前一项。
  * @param context split 后的 core + FIT messages
  * @returns 米
  */
 function deriveFitDistance2dM(context: DeriveContext): unknown {
   const raw = asRecord(context.raw);
   const sessionDistance = sumPositiveField(asArray(raw?.sessionMesgs), 'totalDistance');
-  const lastDist = context.core.points[context.core.points.length - 1]?.dist;
-  return (
-    pickReasonableDistanceM(
-      [sessionDistance, lastDist, context.core.summary.distance2dM],
-      estimateActivityDistanceM(context.core.points),
-    ) ?? undefined
-  );
+  return fillDistance2dM(sessionDistance, context.core.points) ?? undefined;
 }
 
 /**
- * GPX / TCX 距离：注册表距离、末点 dist 与折线估算取合理值。
+ * GPX / TCX 距离：文件已写入的距离、末点距离、轨迹折线，前一项有值就用前一项。
  * @param context split 后的 core + xml 树
  * @returns 米
  */
 function deriveXmlDistance2dM(context: DeriveContext): unknown {
-  const lastDist = context.core.points[context.core.points.length - 1]?.dist;
   return (
-    pickReasonableDistanceM(
-      [context.core.summary.distance2dM, lastDist],
-      estimateActivityDistanceM(context.core.points),
-    ) ?? undefined
+    fillDistance2dM(toPositive(context.core.summary.distance2dM), context.core.points) ??
+    undefined
   );
+}
+
+/**
+ * 汇总距离的取值顺序：文件总距离、最后一点距离、轨迹折线。
+ * @param fileDistanceM 文件给出的总距离（米）
+ * @param points 轨迹点
+ * @returns 选定距离（米）；都没有时为 undefined
+ */
+function fillDistance2dM(
+  fileDistanceM: number | undefined,
+  points: DeriveContext['core']['points'],
+): number | undefined {
+  if (fileDistanceM !== undefined && fileDistanceM > 0) {
+    return fileDistanceM;
+  }
+  const lastDist = lastPositivePointDistance(points);
+  if (lastDist !== undefined) {
+    return lastDist;
+  }
+  return estimateActivityDistanceM(points) ?? undefined;
+}
+
+function lastPositivePointDistance(
+  points: DeriveContext['core']['points'],
+): number | undefined {
+  for (let index = points.length - 1; index >= 0; index -= 1) {
+    const dist = points[index]?.dist;
+    if (typeof dist === 'number' && Number.isFinite(dist) && dist > 0) {
+      return dist;
+    }
+  }
+  return undefined;
 }
 
 /**

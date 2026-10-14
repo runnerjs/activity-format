@@ -4,6 +4,7 @@ import {
   TRACK_SOURCE,
 } from '../constants';
 import type { BinaryInput, CoordSystem, FileFormat, TrackSource } from '../types';
+import { isCodoonAppFit } from './codoon-fit-distance.util';
 import {
   CODOON_CREATOR_PATTERN,
   CODOON_GPX_NAME_PATTERN,
@@ -49,11 +50,11 @@ export function resolveSourceCoordSystem(
     return COORD_SYSTEM.gcj02;
   }
   if (source === TRACK_SOURCE.codoon) {
-    // 咕咚本地 GPX（无设备）为 GCJ-02；经平台同步导出的 FIT/TCX（有设备）为 WGS-84
-    if (fileFormat === FILE_FORMAT.gpx && !hasRecordingDevice) {
-      return COORD_SYSTEM.gcj02;
+    // 手表同步后再导出带设备信息，坐标保持 WGS-84；App 自己记录的为 GCJ-02
+    if (hasRecordingDevice) {
+      return COORD_SYSTEM.wgs84;
     }
-    return COORD_SYSTEM.wgs84;
+    return COORD_SYSTEM.gcj02;
   }
   return COORD_SYSTEM.wgs84;
 }
@@ -173,7 +174,10 @@ async function detectFitFileSource(input: BinaryInput): Promise<FileSourceDetect
       // 有厂商但未识别为已知平台，按手工/其他设备处理
       return fallbackDetection(TRACK_SOURCE.manual, FILE_FORMAT.fit, true);
     }
-    // 无厂商字段的 FIT 常见于 Joyrun 再导出
+    if (isCodoonAppFit(messages)) {
+      return fallbackDetection(TRACK_SOURCE.codoon, FILE_FORMAT.fit, false);
+    }
+    // 无厂商、有步频且没有速度的 FIT 常见于悦跑圈再导出
     return fallbackDetection(TRACK_SOURCE.joyrun, FILE_FORMAT.fit, false);
   } catch {
     return fallbackDetection(TRACK_SOURCE.manual, FILE_FORMAT.fit, false);

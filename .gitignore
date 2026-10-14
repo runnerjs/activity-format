@@ -145,3 +145,5 @@ vite.config.ts.timestamp-*
 .cursor/
 docs/
 .DS_Store
+demo-local/
+demo/codoon/

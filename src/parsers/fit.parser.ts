@@ -1,4 +1,4 @@
-import { FILE_FORMAT } from '../constants';
+import { FILE_FORMAT, TRACK_SOURCE } from '../constants';
 import type { Activity, BinaryInput, ParseOptions } from '../types';
 import { applyDerivers } from '../field-map/derive';
 import { assignFitLapPointRangesFromMessages, toTimeMs } from '../field-map/lap-point-range';
@@ -8,6 +8,10 @@ import {
   isValidTrackTimestampMs,
 } from '../utils/track-point';
 import { toNum } from './types';
+import {
+  accumulateCodoonSegmentDistances,
+  readFitTotalDistanceM,
+} from './codoon-fit-distance.util';
 import { decodeFitBuffer, type FitMessages } from './fit-decoder';
 import { finalizeParsedActivity, resolveParseContext } from './finalize-activity';
 
@@ -41,6 +45,12 @@ export async function parseFit(
     sourceCoordSystem: parseContext.activityCoords.sourceCoordSystem,
     meta: { derivedFields: [], cleanupVersion: CURRENT_CLEANUP_VERSION },
   });
+
+  // 咕咚 App 的 record.distance 有的是本段距离。统一模型约定 points[].dist 为从起点起的累计距离。
+  // 速度对得上相邻差值，或末点与 session 总距离接近时，保持文件里的累计距离。
+  if (parseContext.source === TRACK_SOURCE.codoon) {
+    accumulateCodoonSegmentDistances(core.points, readFitTotalDistanceM(messages));
+  }
 
   // 按 lap.startTime / timestamp 时间窗写 pointRange（下标已是清洗后的数组）
   assignFitLapPointRangesFromMessages(

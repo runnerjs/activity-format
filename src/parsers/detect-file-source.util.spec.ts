@@ -45,6 +45,35 @@ describe('detectFileSource', () => {
       expect(result.source).toBe(TRACK_SOURCE.joyrun);
       expect(result.hasRecordingDevice).toBe(false);
     });
+
+    it('应识别咕咚 App 导出的无厂商 FIT', async () => {
+      const result = await detectFileSource(
+        readFileSync(repoDemoPath('codoon/2013-08-29_17-01-07.fit')),
+        FILE_FORMAT.fit,
+      );
+      expect(result.source).toBe(TRACK_SOURCE.codoon);
+      expect(result.hasRecordingDevice).toBe(false);
+      expect(result.sourceCoordSystem).toBe(COORD_SYSTEM.gcj02);
+    });
+
+    it('应识别距离累计递增的咕咚 FIT', async () => {
+      const result = await detectFileSource(
+        readFileSync(repoDemoPath('codoon/2015-04-02_19-09-41.fit')),
+        FILE_FORMAT.fit,
+      );
+      expect(result.source).toBe(TRACK_SOURCE.codoon);
+      expect(result.hasRecordingDevice).toBe(false);
+      expect(result.sourceCoordSystem).toBe(COORD_SYSTEM.gcj02);
+    });
+
+    it('应识别悦跑圈无厂商 FIT', async () => {
+      const result = await detectFileSource(
+        readFileSync(repoDemoPath('joyrun/phone-run.fit')),
+        FILE_FORMAT.fit,
+      );
+      expect(result.source).toBe(TRACK_SOURCE.joyrun);
+      expect(result.sourceCoordSystem).toBe(COORD_SYSTEM.gcj02);
+    });
   });
 });
 
